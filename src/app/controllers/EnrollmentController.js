@@ -18,6 +18,9 @@ class EnrollmentController {
 
     const { start_date, plan_id } = req.body;
 
+    if (plan_id === 1) {
+}
+
     return res.send();
   }
 }
