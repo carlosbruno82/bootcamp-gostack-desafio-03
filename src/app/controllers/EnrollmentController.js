@@ -1,15 +1,12 @@
 import * as Yup from 'yup';
 import Enrollment from '../models/Enrollment';
-import Student from '../models/Student';
+import Plan from '../models/Plan';
 
 class EnrollmentController {
   async store(req, res) {
     const schema = Yup.object().shape({
-      student_id: Yup.number().required(),
-      plan_id: Yup.number().required(),
       start_date: Yup.date().required(),
-      end_date: Yup.date().required(),
-      price: Yup.number().required(),
+      plan_id: Yup.number().required(),
     });
 
     if (!(await schema.isValid(req.body))) {
@@ -18,10 +15,17 @@ class EnrollmentController {
 
     const { start_date, plan_id } = req.body;
 
-    if (plan_id === 1) {
-}
+    const plan = await Plan.findOne({
+      where: { id: plan_id },
+    });
 
-    return res.send();
+    if (!plan) {
+      return res.status(401).json({ error: 'The plan was not found.' });
+    }
+
+    // const { student_id } = await Enrollment.create(req.body);
+
+    return res.json(plan.title);
   }
 }
 
