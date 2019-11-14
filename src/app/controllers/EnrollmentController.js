@@ -6,6 +6,12 @@ import Plan from '../models/Plan';
 import Student from '../models/Student';
 
 class EnrollmentController {
+  async index(req, res) {
+    const enrollment = await Enrollment.findAll();
+
+    res.json(enrollment);
+  }
+
   async store(req, res) {
     const schema = Yup.object().shape({
       start_date: Yup.date().required(),
