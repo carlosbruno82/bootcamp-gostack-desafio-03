@@ -58,7 +58,7 @@ class EnrollmentController {
       price: priceTotal,
     });
 
-    return res.send(enrollment);
+    return res.json(enrollment);
   }
 }
 
