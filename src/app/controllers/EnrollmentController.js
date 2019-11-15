@@ -7,7 +7,20 @@ import Student from '../models/Student';
 
 class EnrollmentController {
   async index(req, res) {
-    const enrollment = await Enrollment.findAll();
+    const enrollment = await Enrollment.findAll({
+      include: [
+        {
+          model: Student,
+          as: 'student',
+          attributes: ['id', 'name', 'email'],
+        },
+        {
+          model: Plan,
+          as: 'plan',
+          attributes: ['id', 'title', 'duration'],
+        },
+      ],
+    });
 
     return res.json(enrollment);
   }
@@ -26,12 +39,23 @@ class EnrollmentController {
     const { start_date, plan_id, student_id } = req.body;
 
     /**
-     * Check Student exists
+     * Check if the student exists at enrollment
      */
-    const student = await Student.findByPk(student_id);
+    const student = await Enrollment.findOne({
+      where: { student_id },
+      include: [
+        {
+          model: Student,
+          as: 'student',
+          attributes: ['id'],
+        },
+      ],
+    });
 
-    if (!student) {
-      return res.status(401).json({ error: 'The Student was not found' });
+    if (student) {
+      return res
+        .status(401)
+        .json({ error: 'Student already has an enrollment' });
     }
 
     /**
@@ -57,6 +81,71 @@ class EnrollmentController {
     const endDate = addMonths(startDate, duration);
 
     const enrollment = await Enrollment.create({
+      student_id,
+      plan_id,
+      start_date,
+      end_date: endDate,
+      price: priceTotal,
+    });
+
+    return res.json(enrollment);
+  }
+
+  async update(req, res) {
+    const schema = Yup.object().shape({
+      start_date: Yup.date().required(),
+      plan_id: Yup.number().required(),
+      student_id: Yup.number().required(),
+    });
+
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ error: 'Validation fails' });
+    }
+
+    const { student_id } = req.params;
+    const { start_date, plan_id } = req.body;
+
+    /**
+     * Check Student exists
+     */
+    const student = await Enrollment.findOne({
+      where: { student_id },
+      include: [
+        {
+          model: Student,
+          as: 'student',
+          attributes: ['id'],
+        },
+      ],
+    });
+
+    if (!student) {
+      return res.status(401).json({ error: 'The Student was not found' });
+    }
+
+    /**
+     * Check Plan exists
+     */
+    const plan = await Plan.findByPk(plan_id);
+
+    if (!plan) {
+      return res.status(401).json({ error: 'The plan was not found.' });
+    }
+
+    /**
+     * Check for past date
+     */
+    const startDate = startOfHour(parseISO(start_date));
+
+    if (isBefore(startDate, new Date())) {
+      return res.status(400).json({ error: 'Past date are not permitted' });
+    }
+
+    const { price, duration } = plan;
+    const priceTotal = price * duration;
+    const endDate = addMonths(startDate, duration);
+
+    const enrollment = await Enrollment.update({
       student_id,
       plan_id,
       start_date,
