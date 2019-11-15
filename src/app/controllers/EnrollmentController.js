@@ -9,7 +9,7 @@ class EnrollmentController {
   async index(req, res) {
     const enrollment = await Enrollment.findAll();
 
-    res.json(enrollment);
+    return res.json(enrollment);
   }
 
   async store(req, res) {

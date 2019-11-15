@@ -7,8 +7,6 @@ class Enrollment extends Model {
         start_date: Sequelize.DATE,
         end_date: Sequelize.DATE,
         price: Sequelize.FLOAT,
-        student_id: Sequelize.INTEGER,
-        plan_id: Sequelize.INTEGER,
       },
       {
         sequelize,
@@ -18,10 +16,10 @@ class Enrollment extends Model {
     return this;
   }
 
-  // static associate(models) {
-  //   this.belongsTo(models.Student, { foreignkey: 'student_id', as: 'student' });
-  //   this.belongsTo(models.Plan, { foreignkey: 'plan_id', as: 'plan' });
-  // }
+  static associate(models) {
+    this.belongsTo(models.Student, { foreignkey: 'student_id', as: 'student' });
+    this.belongsTo(models.Plan, { foreignkey: 'plan_id', as: 'plan' });
+  }
 }
 
 export default Enrollment;
