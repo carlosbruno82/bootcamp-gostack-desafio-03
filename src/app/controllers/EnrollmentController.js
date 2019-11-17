@@ -114,7 +114,7 @@ class EnrollmentController {
     if (!studentEnrollment) {
       return res
         .status(401)
-        .json({ error: 'Student no exists has an enrollment' });
+        .json({ error: 'The student does not have enrollment' });
     }
 
     /**
@@ -157,6 +157,25 @@ class EnrollmentController {
     });
 
     return res.json(enrollment);
+  }
+
+  async delete(req, res) {
+    const { student_id } = req.body;
+    const studentEnrollment = await Enrollment.findOne({
+      where: { student_id },
+    });
+
+    if (!studentEnrollment) {
+      return res
+        .status(401)
+        .json({ error: 'The student does not have enrollment' });
+    }
+
+    Enrollment.destroy({
+      where: { student_id },
+    });
+
+    res.json(studentEnrollment);
   }
 }
 
