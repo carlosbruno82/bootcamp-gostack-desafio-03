@@ -1,9 +1,12 @@
 import * as Yup from 'yup';
-import { startOfHour, addMonths, parseISO, isBefore } from 'date-fns';
+import { startOfHour, addMonths, parseISO, isBefore, format } from 'date-fns';
+import pt from 'date-fns/locale/pt';
 
 import Enrollment from '../models/Enrollment';
 import Plan from '../models/Plan';
 import Student from '../models/Student';
+
+import Mail from '../../lib/Mail';
 
 class EnrollmentController {
   async index(req, res) {
@@ -86,6 +89,27 @@ class EnrollmentController {
       start_date,
       end_date: endDate,
       price: priceTotal,
+    });
+
+    await Mail.sendMail({
+      to: `${student.name} <${student.email}>`,
+      subject: 'Matricula concluida',
+      template: 'enrollment',
+      context: {
+        student: student.name,
+        start: format(
+          enrollment.start_date,
+          "'dia' dd 'de' MMMM', às' H:mm'h'",
+          {
+            locale: pt,
+          }
+        ),
+        plan: plan.title,
+        price: enrollment.price,
+        end: format(enrollment.end_date, "'dia' dd 'de' MMMM', às' H:mm'h'", {
+          locale: pt,
+        }),
+      },
     });
 
     return res.json(enrollment);
