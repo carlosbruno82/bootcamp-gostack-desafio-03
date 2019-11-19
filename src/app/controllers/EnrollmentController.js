@@ -184,7 +184,7 @@ class EnrollmentController {
       where: { student_id },
     });
 
-    res.json(studentEnrollment);
+    return res.json(studentEnrollment);
   }
 }
 
