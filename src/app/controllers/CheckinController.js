@@ -41,12 +41,18 @@ class CheckinController {
     await Checkin.create({ student_id });
 
     return res.json({
-      message: `Welcome ${student.name}, you still have ${checkin.length} access for 7 days`,
+      message: `Welcome ${student.name}, you still have ${5 -
+        (checkin.length + 1)} access for 7 days`,
     });
   }
 
   async index(req, res) {
     const { student_id } = req.params;
+
+    const student = await Student.findByPk(student_id);
+    if (!student) {
+      return res.status(401).json({ error: 'Student no exists' });
+    }
 
     const checkin = await Checkin.findAll({
       where: { student_id },
