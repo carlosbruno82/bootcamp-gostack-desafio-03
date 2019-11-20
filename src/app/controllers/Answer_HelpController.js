@@ -1,7 +1,10 @@
 import * as Yup from 'yup';
-// import { parseISO, startOfHour, isBefore } from 'date-fns';
 
 import Help_Orders from '../models/Help_orders';
+import Student from '../models/Student';
+
+import AnswerMail from '../jobs/AnswerMail';
+import Queue from '../../lib/Queue';
 
 class Answer_HelpController {
   async index(req, res) {
@@ -22,11 +25,16 @@ class Answer_HelpController {
       return res.status(400).json({ error: 'Validation fails' });
     }
 
-    const idExists = await Help_Orders.findByPk(req.params.id);
+    const idAnswer = await Help_Orders.findByPk(req.params.id);
 
-    if (!idExists) {
+    if (!idAnswer) {
       return res.status(401).json({ error: 'ID no exists' });
     }
+
+    const student = await Student.findOne({
+      where: { id: idAnswer.student_id },
+      attributes: ['id', 'name', 'email'],
+    });
 
     const {
       id,
@@ -34,7 +42,12 @@ class Answer_HelpController {
       question,
       answer,
       answer_at,
-    } = await idExists.update(req.body);
+    } = await idAnswer.update(req.body);
+
+    await Queue.add(AnswerMail.key, {
+      idAnswer,
+      student,
+    });
 
     return res.json({
       id,
