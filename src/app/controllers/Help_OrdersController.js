@@ -5,19 +5,11 @@ import Student from '../models/Student';
 
 class Help_OrdersController {
   async store(req, res) {
-    // const schema = Yup.object().shape({
-    //   student_id: Yup.string().required(),
-    // });
-
-    // if (!(await schema.isValid(req.params))) {
-    //   return res.status(400).json({ error: 'Validation fails' });
-    // }
-
-    const schemaBody = Yup.object().shape({
+    const schema = Yup.object().shape({
       question: Yup.string().required(),
     });
 
-    if (!(await schemaBody.isValid(req.body))) {
+    if (!(await schema.isValid(req.body))) {
       return res.status(400).json({ error: 'Validation fails' });
     }
 
@@ -27,7 +19,32 @@ class Help_OrdersController {
 
     const student = await Student.findByPk(student_id);
 
-    return res.json({ message: `${student.name} | ${question}` });
+    if (!student) {
+      return res.status(401).json({ error: 'Student no exists' });
+    }
+
+    await Help_Orders.create({ student_id, question });
+
+    return res.json({
+      student_id,
+      question,
+    });
+  }
+
+  async index(req, res) {
+    const { student_id } = req.params;
+
+    const student = await Student.findByPk(student_id);
+    if (!student) {
+      return res.status(401).json({ error: 'Student no exists' });
+    }
+
+    const help_orders = await Help_Orders.findAll({
+      where: { student_id },
+      attributes: ['id', 'question'],
+    });
+
+    return res.json(help_orders);
   }
 }
 
